@@ -68,57 +68,54 @@ fn setup(
 
         {
             use ab_glyph::OutlineCurve::*;
-            let mut pos: Option<ab_glyph::Point> = None;
-            for curve in outline.curves {
-                dbg!(&curve);
-                match curve {
-                    Line(from, to) => {
-                        if pos.is_none() {
-                            // first point, so we need to add the first point
-                            builder.begin(from.to_lyon_point());
-                        } else if pos.filter(|current| *current != from).is_some() {
-                            builder.end(false);
-                            builder.begin(from.to_lyon_point());
-                        }
-                        // builder.begin(from.to_lyon_point());
-                        builder.line_to(to.to_lyon_point());
-                        // builder.end(false);
-                        pos = Some(to);
+
+            enum MyCurve {
+                Line,
+                Quad(Point),
+                Cubic(Point, Point),
+            }
+
+            // start path
+            let mut iterator = outline
+                .curves
+                .into_iter()
+                .map(|curve| match curve {
+                    Line(from, to) => (from.to_lyon_point(), to.to_lyon_point(), MyCurve::Line),
+                    Quad(from, ctrl, to) => (
+                        from.to_lyon_point(),
+                        to.to_lyon_point(),
+                        MyCurve::Quad(ctrl.to_lyon_point()),
+                    ),
+                    Cubic(from, ctrl1, ctrl2, to) => (
+                        from.to_lyon_point(),
+                        to.to_lyon_point(),
+                        MyCurve::Cubic(ctrl1.to_lyon_point(), ctrl2.to_lyon_point()),
+                    ),
+                })
+                .enumerate()
+                .peekable();
+            while let Some((idx, (from, to, curve_type))) = iterator.next() {
+                // if first path, start path
+                if idx == 0 {
+                    builder.begin(from);
+                }
+                // take path
+                match curve_type {
+                    MyCurve::Line => builder.line_to(to),
+                    MyCurve::Quad(ctrl) => builder.quadratic_bezier_to(ctrl, to),
+                    MyCurve::Cubic(ctrl1, ctrl2) => builder.cubic_bezier_to(ctrl1, ctrl2, to),
+                };
+                // if required (next is different), finish path, start next path
+                if let Some((_, (next_from, _, _))) = iterator.peek() {
+                    if *next_from != to {
+                        builder.end(false);
+                        builder.begin(*next_from);
                     }
-                    Quad(from, ctrl, to) => {
-                        if pos.is_none() {
-                            // first point, so we need to add the first point
-                            builder.begin(from.to_lyon_point());
-                        } else if pos.filter(|current| *current != from).is_some() {
-                            builder.end(false);
-                            builder.begin(from.to_lyon_point());
-                        }
-                        // builder.begin(from.to_lyon_point());
-                        builder.quadratic_bezier_to(ctrl.to_lyon_point(), to.to_lyon_point());
-                        // builder.end(false);
-                        pos = Some(to);
-                    }
-                    Cubic(from, ctrl1, ctrl2, to) => {
-                        if pos.is_none() {
-                            // first point, so we need to add the first point
-                            builder.begin(from.to_lyon_point());
-                        } else if pos.filter(|current| *current != from).is_some() {
-                            builder.end(false);
-                            builder.begin(from.to_lyon_point());
-                        }
-                        // builder.begin(from.to_lyon_point());
-                        builder.cubic_bezier_to(
-                            ctrl1.to_lyon_point(),
-                            ctrl2.to_lyon_point(),
-                            to.to_lyon_point(),
-                        );
-                        // builder.end(false);
-                        pos = Some(to);
-                    }
+                } else {
+                    builder.close();
                 }
             }
         }
-        builder.close();
 
         let path = builder.build();
 
