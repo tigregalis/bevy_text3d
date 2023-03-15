@@ -137,6 +137,8 @@ fn setup(
             uvs.push(*uv);
         }
 
+        println!("{:#?}", &geometry);
+
         geometry.indices.reverse(); // bevy has a right-handed coordinate system
 
         let indices = Indices::U32(geometry.indices);
