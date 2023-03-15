@@ -1,5 +1,6 @@
 use ab_glyph::{Font, FontRef};
 use bevy::{
+    pbr::wireframe::{Wireframe, WireframePlugin},
     prelude::*,
     render::{camera::Camera, mesh::Indices, render_resource::PrimitiveTopology},
 };
@@ -30,8 +31,10 @@ fn main() {
     App::new()
         .insert_resource(Msaa::Sample8)
         .add_plugins(DefaultPlugins)
+        .add_plugin(WireframePlugin)
         .add_startup_system(setup)
         .add_system(zoom_and_pan)
+        .add_system(wireframe)
         .run();
 }
 
@@ -154,12 +157,15 @@ fn setup(
         let material = materials.add(Color::rgb(0.3, 0.5, 0.3).into());
 
         // plane
-        commands.spawn(PbrBundle {
-            mesh,
-            material,
-            transform: Transform::from_scale(Vec2::splat(0.1).extend(1.0)),
-            ..Default::default()
-        });
+        commands.spawn((
+            PbrBundle {
+                mesh,
+                material,
+                transform: Transform::from_scale(Vec2::splat(0.1).extend(1.0)),
+                ..Default::default()
+            },
+            Wireframeable,
+        ));
 
         // camera
         commands.spawn(Camera3dBundle {
@@ -197,6 +203,25 @@ fn zoom_and_pan(
         }
         if input.pressed(KeyCode::D) {
             transform.translation.x += transform.translation.z * time.delta_seconds();
+        }
+    }
+}
+
+#[derive(Component)]
+struct Wireframeable;
+
+fn wireframe(
+    mut commands: Commands,
+    mut query: Query<(Entity, Option<&Wireframe>), With<Wireframeable>>,
+    input: Res<Input<KeyCode>>,
+) {
+    if input.just_pressed(KeyCode::Space) {
+        for (entity, maybe_wireframe) in query.iter_mut() {
+            if maybe_wireframe.is_some() {
+                commands.entity(entity).remove::<Wireframe>();
+            } else {
+                commands.entity(entity).insert(Wireframe);
+            }
         }
     }
 }
