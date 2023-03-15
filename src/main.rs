@@ -164,7 +164,7 @@ fn setup(
             // camera
             .spawn(Camera3dBundle {
                 transform: {
-                    let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 500.0))
+                    let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 200.0))
                         .looking_at(Vec3::default(), Vec3::unit_y());
                     transform.scale = Vec2::splat(2.0).extend(1.0);
                     transform
@@ -187,16 +187,16 @@ fn zoom_and_pan(
             transform.translation.z -= 100.0 * time.delta_seconds();
         }
         if input.pressed(KeyCode::W) {
-            transform.translation.y += 100.0 * time.delta_seconds();
+            transform.translation.y += transform.translation.z * time.delta_seconds();
         }
         if input.pressed(KeyCode::A) {
-            transform.translation.x -= 100.0 * time.delta_seconds();
+            transform.translation.x -= transform.translation.z * time.delta_seconds();
         }
         if input.pressed(KeyCode::S) {
-            transform.translation.y -= 100.0 * time.delta_seconds();
+            transform.translation.y -= transform.translation.z * time.delta_seconds();
         }
         if input.pressed(KeyCode::D) {
-            transform.translation.x += 100.0 * time.delta_seconds();
+            transform.translation.x += transform.translation.z * time.delta_seconds();
         }
     }
 }
