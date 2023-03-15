@@ -28,6 +28,7 @@ struct MyVertex {
 /// This example shows various ways to configure texture materials in 3D
 fn main() {
     App::new()
+        .insert_resource(Msaa::Sample8)
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .add_system(zoom_and_pan)
