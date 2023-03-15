@@ -156,12 +156,15 @@ fn setup(
 
         let material = materials.add(Color::rgb(0.3, 0.5, 0.3).into());
 
+        const SCALE: f32 = 0.25;
+
         // plane
         commands.spawn((
             PbrBundle {
                 mesh,
                 material,
-                transform: Transform::from_scale(Vec2::splat(0.1).extend(1.0)),
+                transform: Transform::from_scale(Vec2::splat(SCALE).extend(1.0))
+                    .with_translation(Vec3::new(-width * SCALE / 2.0, -height * SCALE / 2.0, 0.0)),
                 ..Default::default()
             },
             Wireframeable,
