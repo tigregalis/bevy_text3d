@@ -21,76 +21,69 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
     let width = max_x - min_x;
     let height = max_y - min_y;
 
-    {
-        // start path
-        let mut iterator = outline
-            .curves
-            .into_iter()
-            .map(|curve| match curve {
-                OutlineCurve::Line(from, to) => {
-                    (from.to_lyon_point(), to.to_lyon_point(), CurveMapping::Line)
-                }
-                OutlineCurve::Quad(from, ctrl, to) => (
-                    from.to_lyon_point(),
-                    to.to_lyon_point(),
-                    CurveMapping::Quad(ctrl.to_lyon_point()),
-                ),
-                OutlineCurve::Cubic(from, ctrl1, ctrl2, to) => (
-                    from.to_lyon_point(),
-                    to.to_lyon_point(),
-                    CurveMapping::Cubic(ctrl1.to_lyon_point(), ctrl2.to_lyon_point()),
-                ),
-            })
-            .enumerate()
-            .peekable();
-        while let Some((idx, (from, to, curve_type))) = iterator.next() {
-            // if first path, start path
-            if idx == 0 {
-                builder.begin(from);
+    // start path
+    let mut iterator = outline
+        .curves
+        .into_iter()
+        .map(|curve| match curve {
+            OutlineCurve::Line(from, to) => {
+                (from.to_lyon_point(), to.to_lyon_point(), CurveMapping::Line)
             }
-            // take path
-            match curve_type {
-                CurveMapping::Line => builder.line_to(to),
-                CurveMapping::Quad(ctrl) => builder.quadratic_bezier_to(ctrl, to),
-                CurveMapping::Cubic(ctrl1, ctrl2) => builder.cubic_bezier_to(ctrl1, ctrl2, to),
-            };
-            // if required (next is different), finish path, start next path
-            if let Some((_, (next_from, _, _))) = iterator.peek() {
-                if *next_from != to {
-                    builder.end(false);
-                    builder.begin(*next_from);
-                }
-            } else {
-                builder.close();
+            OutlineCurve::Quad(from, ctrl, to) => (
+                from.to_lyon_point(),
+                to.to_lyon_point(),
+                CurveMapping::Quad(ctrl.to_lyon_point()),
+            ),
+            OutlineCurve::Cubic(from, ctrl1, ctrl2, to) => (
+                from.to_lyon_point(),
+                to.to_lyon_point(),
+                CurveMapping::Cubic(ctrl1.to_lyon_point(), ctrl2.to_lyon_point()),
+            ),
+        })
+        .enumerate()
+        .peekable();
+    while let Some((idx, (from, to, curve_type))) = iterator.next() {
+        // if first path, start path
+        if idx == 0 {
+            builder.begin(from);
+        }
+        // take path
+        match curve_type {
+            CurveMapping::Line => builder.line_to(to),
+            CurveMapping::Quad(ctrl) => builder.quadratic_bezier_to(ctrl, to),
+            CurveMapping::Cubic(ctrl1, ctrl2) => builder.cubic_bezier_to(ctrl1, ctrl2, to),
+        };
+        // if required (next is different), finish path, start next path
+        if let Some((_, (next_from, _, _))) = iterator.peek() {
+            if *next_from != to {
+                builder.end(false);
+                builder.begin(*next_from);
             }
+        } else {
+            builder.close();
         }
     }
 
     let path = builder.build();
 
-    // Will contain the result of the tessellation.
     let mut geometry: VertexBuffers<VertexInfo, u32> = VertexBuffers::new();
 
-    {
-        // Compute the tessellation.
-        FillTessellator::new()
-            .tessellate_path(
-                &path,
-                &FillOptions::default(),
-                &mut BuffersBuilder::new(
-                    &mut geometry,
-                    VertexFiller {
-                        min_x,
-                        min_y,
-                        width,
-                        height,
-                    },
-                ),
-            )
-            .unwrap();
-    }
+    FillTessellator::new()
+        .tessellate_path(
+            &path,
+            &FillOptions::default(),
+            &mut BuffersBuilder::new(
+                &mut geometry,
+                VertexFiller {
+                    min_x,
+                    min_y,
+                    width,
+                    height,
+                },
+            ),
+        )
+        .unwrap();
 
-    // The tessellated geometry is ready to be uploaded to the GPU.
     let normals = vec![Vec3::Z.to_array(); geometry.vertices.len()];
     let mut positions = Vec::<[f32; 3]>::with_capacity(geometry.vertices.len());
     let mut uvs = Vec::<[f32; 2]>::with_capacity(geometry.vertices.len());
