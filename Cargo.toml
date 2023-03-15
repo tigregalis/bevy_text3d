@@ -2,7 +2,7 @@
 name = "lyon-loves-ab-glyph"
 version = "0.1.0"
 authors = ["tigregalis <anak.harimau@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -10,4 +10,4 @@ edition = "2018"
 ab_glyph = "0.2.20"
 glyph_brush_layout = "0.2.3"
 lyon = "0.16.2"
-bevy = { git = "https://github.com/bevyengine/bevy" }
+bevy = { version = "0.10.0" }

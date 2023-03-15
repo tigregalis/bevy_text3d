@@ -1,7 +1,7 @@
 use ab_glyph::{Font, FontRef};
 use bevy::{
     prelude::*,
-    render::{camera::Camera, mesh::Indices, pipeline::PrimitiveTopology},
+    render::{camera::Camera, mesh::Indices, render_resource::PrimitiveTopology},
 };
 use lyon::math::{point, Point};
 use lyon::path::Path;
@@ -27,7 +27,7 @@ struct MyVertex {
 
 /// This example shows various ways to configure texture materials in 3D
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .add_system(zoom_and_pan)
@@ -36,7 +36,7 @@ fn main() {
 
 /// sets up a scene with textured entities
 fn setup(
-    commands: &mut Commands,
+    mut commands: Commands,
     // asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -145,32 +145,31 @@ fn setup(
 
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
         mesh.set_indices(Some(indices));
-        mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, positions);
-        mesh.set_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-        mesh.set_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
         let mesh_handle = meshes.add(mesh);
 
         let material = materials.add(Color::rgb(0.3, 0.5, 0.3).into());
 
-        commands
-            // plane
-            .insert_resource(material.clone())
-            .spawn(PbrBundle {
-                mesh: mesh_handle,
-                material,
-                transform: Transform::from_scale(Vec2::splat(0.1).extend(1.0)),
-                ..Default::default()
-            })
-            // camera
-            .spawn(Camera3dBundle {
-                transform: {
-                    let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 200.0))
-                        .looking_at(Vec3::default(), Vec3::unit_y());
-                    transform.scale = Vec2::splat(2.0).extend(1.0);
-                    transform
-                },
-                ..Default::default()
-            });
+        // plane
+        // commands.insert_resource(material.clone());
+        commands.spawn(PbrBundle {
+            mesh: mesh_handle,
+            material,
+            transform: Transform::from_scale(Vec2::splat(0.1).extend(1.0)),
+            ..Default::default()
+        });
+        // camera
+        commands.spawn(Camera3dBundle {
+            transform: {
+                let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 200.0))
+                    .looking_at(Vec3::default(), Vec3::Y);
+                transform.scale = Vec2::splat(2.0).extend(1.0);
+                transform
+            },
+            ..Default::default()
+        });
     }
 }
 
