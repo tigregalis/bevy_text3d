@@ -136,9 +136,9 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
     }
 
     // The tessellated geometry is ready to be uploaded to the GPU.
-    let mut positions = Vec::<[f32; 3]>::new();
-    let mut normals = Vec::<[f32; 3]>::new();
-    let mut uvs = Vec::<[f32; 2]>::new();
+    let mut positions = Vec::<[f32; 3]>::with_capacity(geometry.vertices.len());
+    let mut normals = Vec::<[f32; 3]>::with_capacity(geometry.vertices.len());
+    let mut uvs = Vec::<[f32; 2]>::with_capacity(geometry.vertices.len());
 
     for MyVertex {
         position,
