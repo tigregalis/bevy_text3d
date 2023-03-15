@@ -181,10 +181,10 @@ fn zoom_and_pan(
 ) {
     for mut transform in query.iter_mut() {
         if input.pressed(KeyCode::Down) {
-            transform.translation.z += 100.0 * time.delta_seconds();
+            transform.translation.z += transform.translation.z * time.delta_seconds();
         }
         if input.pressed(KeyCode::Up) {
-            transform.translation.z -= 100.0 * time.delta_seconds();
+            transform.translation.z -= transform.translation.z * time.delta_seconds();
         }
         if input.pressed(KeyCode::W) {
             transform.translation.y += transform.translation.z * time.delta_seconds();
