@@ -1,16 +1,11 @@
-use ab_glyph::{Font, FontRef};
+use ab_glyph::{Font, FontRef, OutlineCurve};
 
 use bevy::{
     prelude::*,
     render::{mesh::Indices, render_resource::PrimitiveTopology},
 };
 
-use lyon::{
-    geom::euclid::Point2D,
-    math::{point, Point},
-    path::Path,
-    tessellation::*,
-};
+use lyon::{geom::euclid::Point2D, path::Path, tessellation::*};
 
 pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
     let glyph_id = font.glyph_id(the_char);
@@ -27,23 +22,23 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
     let height = max_y - min_y;
 
     {
-        use ab_glyph::OutlineCurve::*;
-
         // start path
         let mut iterator = outline
             .curves
             .into_iter()
             .map(|curve| match curve {
-                Line(from, to) => (from.to_lyon_point(), to.to_lyon_point(), MyCurve::Line),
-                Quad(from, ctrl, to) => (
+                OutlineCurve::Line(from, to) => {
+                    (from.to_lyon_point(), to.to_lyon_point(), CurveMapping::Line)
+                }
+                OutlineCurve::Quad(from, ctrl, to) => (
                     from.to_lyon_point(),
                     to.to_lyon_point(),
-                    MyCurve::Quad(ctrl.to_lyon_point()),
+                    CurveMapping::Quad(ctrl.to_lyon_point()),
                 ),
-                Cubic(from, ctrl1, ctrl2, to) => (
+                OutlineCurve::Cubic(from, ctrl1, ctrl2, to) => (
                     from.to_lyon_point(),
                     to.to_lyon_point(),
-                    MyCurve::Cubic(ctrl1.to_lyon_point(), ctrl2.to_lyon_point()),
+                    CurveMapping::Cubic(ctrl1.to_lyon_point(), ctrl2.to_lyon_point()),
                 ),
             })
             .enumerate()
@@ -55,9 +50,9 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
             }
             // take path
             match curve_type {
-                MyCurve::Line => builder.line_to(to),
-                MyCurve::Quad(ctrl) => builder.quadratic_bezier_to(ctrl, to),
-                MyCurve::Cubic(ctrl1, ctrl2) => builder.cubic_bezier_to(ctrl1, ctrl2, to),
+                CurveMapping::Line => builder.line_to(to),
+                CurveMapping::Quad(ctrl) => builder.quadratic_bezier_to(ctrl, to),
+                CurveMapping::Cubic(ctrl1, ctrl2) => builder.cubic_bezier_to(ctrl1, ctrl2, to),
             };
             // if required (next is different), finish path, start next path
             if let Some((_, (next_from, _, _))) = iterator.peek() {
@@ -74,7 +69,7 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
     let path = builder.build();
 
     // Will contain the result of the tessellation.
-    let mut geometry: VertexBuffers<MyVertex, u32> = VertexBuffers::new();
+    let mut geometry: VertexBuffers<VertexInfo, u32> = VertexBuffers::new();
 
     {
         // Compute the tessellation.
@@ -84,7 +79,7 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
                 &FillOptions::default(),
                 &mut BuffersBuilder::new(
                     &mut geometry,
-                    Ctor {
+                    VertexFiller {
                         min_x,
                         min_y,
                         width,
@@ -96,18 +91,12 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
     }
 
     // The tessellated geometry is ready to be uploaded to the GPU.
+    let normals = vec![Vec3::Z.to_array(); geometry.vertices.len()];
     let mut positions = Vec::<[f32; 3]>::with_capacity(geometry.vertices.len());
-    let mut normals = Vec::<[f32; 3]>::with_capacity(geometry.vertices.len());
     let mut uvs = Vec::<[f32; 2]>::with_capacity(geometry.vertices.len());
 
-    for MyVertex {
-        position,
-        normal,
-        uv,
-    } in geometry.vertices.iter()
-    {
-        positions.push([position[0], position[1], position[2]]);
-        normals.push(*normal);
+    for VertexInfo { position, uv } in geometry.vertices.iter() {
+        positions.push(*position);
         uvs.push(*uv);
     }
 
@@ -128,37 +117,34 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
 }
 
 trait ToLyonPoint {
-    fn to_lyon_point(&self) -> Point;
+    fn to_lyon_point(&self) -> lyon::math::Point;
 }
 
 impl ToLyonPoint for ab_glyph::Point {
-    fn to_lyon_point(&self) -> Point {
-        point(self.x, self.y)
+    fn to_lyon_point(&self) -> lyon::math::Point {
+        lyon::math::point(self.x, self.y)
     }
 }
 
-// Let's use our own custom vertex type instead of the default one.
-#[derive(Copy, Clone, Debug)]
-struct MyVertex {
-    position: [f32; 3],
-    normal: [f32; 3],
-    uv: [f32; 2],
+enum CurveMapping {
+    Line,
+    Quad(lyon::math::Point),
+    Cubic(lyon::math::Point, lyon::math::Point),
 }
 
-struct Ctor {
+struct VertexFiller {
     min_x: f32,
     min_y: f32,
     width: f32,
     height: f32,
 }
 
-impl FillVertexConstructor<MyVertex> for Ctor {
-    fn new_vertex(&mut self, vertex: FillVertex) -> MyVertex {
+impl FillVertexConstructor<VertexInfo> for VertexFiller {
+    fn new_vertex(&mut self, vertex: FillVertex) -> VertexInfo {
         let position = vertex.position();
         let Point2D { x, y, .. } = position;
-        MyVertex {
+        VertexInfo {
             position: [x, y, 0.0],
-            normal: Vec3::Z.to_array(),
             uv: [
                 (x - self.min_x) / self.width,
                 1.0 - (y - self.min_y) / self.height,
@@ -167,14 +153,14 @@ impl FillVertexConstructor<MyVertex> for Ctor {
     }
 }
 
-enum MyCurve {
-    Line,
-    Quad(Point),
-    Cubic(Point, Point),
-}
-
 pub struct GlyphMesh {
     pub mesh: Mesh,
     pub width: f32,
     pub height: f32,
+}
+
+#[derive(Copy, Clone, Debug)]
+struct VertexInfo {
+    position: [f32; 3],
+    uv: [f32; 2],
 }
