@@ -12,46 +12,6 @@ use lyon::{
     tessellation::*,
 };
 
-trait ToLyonPoint {
-    fn to_lyon_point(&self) -> Point;
-}
-
-impl ToLyonPoint for ab_glyph::Point {
-    fn to_lyon_point(&self) -> Point {
-        point(self.x, self.y)
-    }
-}
-
-// Let's use our own custom vertex type instead of the default one.
-#[derive(Copy, Clone, Debug)]
-struct MyVertex {
-    position: [f32; 3],
-    normal: [f32; 3],
-    uv: [f32; 2],
-}
-
-struct Ctor {
-    min_x: f32,
-    min_y: f32,
-    width: f32,
-    height: f32,
-}
-
-impl FillVertexConstructor<MyVertex> for Ctor {
-    fn new_vertex(&mut self, vertex: FillVertex) -> MyVertex {
-        let position = vertex.position();
-        let Point2D { x, y, .. } = position;
-        MyVertex {
-            position: [x, y, 0.0],
-            normal: Vec3::Z.to_array(),
-            uv: [
-                (x - self.min_x) / self.width,
-                1.0 - (y - self.min_y) / self.height,
-            ],
-        }
-    }
-}
-
 pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
     let glyph_id = font.glyph_id(the_char);
     let Some(outline) = font.outline(glyph_id) else { return None };
@@ -151,8 +111,6 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
         uvs.push(*uv);
     }
 
-    println!("{:#?}", &geometry);
-
     geometry.indices.reverse(); // bevy has a right-handed coordinate system
 
     let indices = Indices::U32(geometry.indices);
@@ -167,6 +125,46 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
         width,
         height,
     })
+}
+
+trait ToLyonPoint {
+    fn to_lyon_point(&self) -> Point;
+}
+
+impl ToLyonPoint for ab_glyph::Point {
+    fn to_lyon_point(&self) -> Point {
+        point(self.x, self.y)
+    }
+}
+
+// Let's use our own custom vertex type instead of the default one.
+#[derive(Copy, Clone, Debug)]
+struct MyVertex {
+    position: [f32; 3],
+    normal: [f32; 3],
+    uv: [f32; 2],
+}
+
+struct Ctor {
+    min_x: f32,
+    min_y: f32,
+    width: f32,
+    height: f32,
+}
+
+impl FillVertexConstructor<MyVertex> for Ctor {
+    fn new_vertex(&mut self, vertex: FillVertex) -> MyVertex {
+        let position = vertex.position();
+        let Point2D { x, y, .. } = position;
+        MyVertex {
+            position: [x, y, 0.0],
+            normal: Vec3::Z.to_array(),
+            uv: [
+                (x - self.min_x) / self.width,
+                1.0 - (y - self.min_y) / self.height,
+            ],
+        }
+    }
 }
 
 enum MyCurve {
