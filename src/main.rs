@@ -4,9 +4,12 @@ use bevy::{
     prelude::*,
     render::{camera::Camera, mesh::Indices, render_resource::PrimitiveTopology},
 };
-use lyon::math::{point, Point};
-use lyon::path::Path;
 use lyon::tessellation::*;
+use lyon::{
+    geom::euclid::Point2D,
+    math::{point, Point},
+    path::Path,
+};
 
 trait ToLyonPoint {
     fn to_lyon_point(&self) -> Point;
@@ -53,6 +56,7 @@ fn setup(
     let glyph_id = font.glyph_id(the_char);
     if let Some(outline) = font.outline(glyph_id) {
         let mut builder = Path::builder();
+        builder.reserve(outline.curves.len(), 2 * outline.curves.len());
         let a = outline.bounds.min;
         let b = outline.bounds.max;
         let min_x = a.x.min(b.x);
@@ -64,63 +68,102 @@ fn setup(
 
         {
             use ab_glyph::OutlineCurve::*;
+            let mut pos: Option<ab_glyph::Point> = None;
             for curve in outline.curves {
                 dbg!(&curve);
-                let current_position = builder.current_position();
                 match curve {
                     Line(from, to) => {
-                        // TODO: see if there is an idiomatic way to do something like eq(a, b).then(|a, b| {})
-                        let from = from.to_lyon_point();
-                        if current_position != from {
-                            builder.move_to(from);
+                        if pos.is_none() {
+                            // first point, so we need to add the first point
+                            builder.begin(from.to_lyon_point());
+                        } else if pos.filter(|current| *current != from).is_some() {
+                            builder.end(false);
+                            builder.begin(from.to_lyon_point());
                         }
-
+                        // builder.begin(from.to_lyon_point());
                         builder.line_to(to.to_lyon_point());
+                        // builder.end(false);
+                        pos = Some(to);
                     }
                     Quad(from, ctrl, to) => {
-                        let from = from.to_lyon_point();
-                        if current_position != from {
-                            builder.move_to(from);
+                        if pos.is_none() {
+                            // first point, so we need to add the first point
+                            builder.begin(from.to_lyon_point());
+                        } else if pos.filter(|current| *current != from).is_some() {
+                            builder.end(false);
+                            builder.begin(from.to_lyon_point());
                         }
-
+                        // builder.begin(from.to_lyon_point());
                         builder.quadratic_bezier_to(ctrl.to_lyon_point(), to.to_lyon_point());
+                        // builder.end(false);
+                        pos = Some(to);
                     }
                     Cubic(from, ctrl1, ctrl2, to) => {
-                        let from = from.to_lyon_point();
-                        if current_position != from {
-                            builder.move_to(from);
+                        if pos.is_none() {
+                            // first point, so we need to add the first point
+                            builder.begin(from.to_lyon_point());
+                        } else if pos.filter(|current| *current != from).is_some() {
+                            builder.end(false);
+                            builder.begin(from.to_lyon_point());
                         }
-
+                        // builder.begin(from.to_lyon_point());
                         builder.cubic_bezier_to(
                             ctrl1.to_lyon_point(),
                             ctrl2.to_lyon_point(),
                             to.to_lyon_point(),
                         );
+                        // builder.end(false);
+                        pos = Some(to);
                     }
                 }
             }
         }
         builder.close();
+
         let path = builder.build();
 
         // Will contain the result of the tessellation.
         let mut geometry: VertexBuffers<MyVertex, u32> = VertexBuffers::new();
 
         const NORMAL: [f32; 3] = [0.0, 0.0, 1.0];
+
+        struct Ctor {
+            min_x: f32,
+            min_y: f32,
+            width: f32,
+            height: f32,
+        }
+
+        impl FillVertexConstructor<MyVertex> for Ctor {
+            fn new_vertex(&mut self, vertex: FillVertex) -> MyVertex {
+                let position = vertex.position();
+                let Point2D { x, y, .. } = position;
+                MyVertex {
+                    position: [x, y, 0.0],
+                    normal: NORMAL,
+                    uv: [
+                        (x - self.min_x) / self.width,
+                        1.0 - (y - self.min_y) / self.height,
+                    ],
+                }
+            }
+        }
+
         {
             // Compute the tessellation.
             FillTessellator::new()
                 .tessellate_path(
                     &path,
                     &FillOptions::default(),
-                    &mut BuffersBuilder::new(&mut geometry, |pos: Point, _: FillAttributes| {
-                        let (x, y) = pos.to_tuple();
-                        MyVertex {
-                            position: [x, y, 0.0],
-                            normal: NORMAL,
-                            uv: [(x - min_x) / width, 1.0 - (y - min_y) / height],
-                        }
-                    }),
+                    &mut BuffersBuilder::new(
+                        &mut geometry,
+                        Ctor {
+                            min_x,
+                            min_y,
+                            width,
+                            height,
+                        },
+                    ),
                 )
                 .unwrap();
         }
