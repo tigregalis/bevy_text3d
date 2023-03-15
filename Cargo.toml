@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ab_glyph = "0.2.6"
+ab_glyph = "0.2.20"
 glyph_brush_layout = "0.2.1"
 lyon = "0.16.2"
 bevy = { git = "https://github.com/bevyengine/bevy" }
