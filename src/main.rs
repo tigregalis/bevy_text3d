@@ -148,18 +148,18 @@ fn setup(
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
         mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-        let mesh_handle = meshes.add(mesh);
+        let mesh = meshes.add(mesh);
 
         let material = materials.add(Color::rgb(0.3, 0.5, 0.3).into());
 
         // plane
-        // commands.insert_resource(material.clone());
         commands.spawn(PbrBundle {
-            mesh: mesh_handle,
+            mesh,
             material,
             transform: Transform::from_scale(Vec2::splat(0.1).extend(1.0)),
             ..Default::default()
         });
+
         // camera
         commands.spawn(Camera3dBundle {
             transform: {
