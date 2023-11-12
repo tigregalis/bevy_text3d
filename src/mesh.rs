@@ -1,4 +1,4 @@
-use ab_glyph::{Font, FontRef, OutlineCurve};
+use ab_glyph::{Font, GlyphId, OutlineCurve};
 
 use bevy::{
     prelude::*,
@@ -7,9 +7,16 @@ use bevy::{
 
 use lyon::{geom::euclid::Point2D, path::Path, tessellation::*};
 
-pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
-    let glyph_id = font.glyph_id(the_char);
-    let Some(outline) = font.outline(glyph_id) else { return None };
+#[derive(Debug)]
+pub enum MeshError {
+    NoOutline,
+    TessellationError(TessellationError),
+}
+
+// pub fn build_mesh(font: impl Font, the_char: char) -> Option<GlyphMesh> {
+pub fn build_mesh(font: &impl Font, glyph_id: GlyphId) -> Result<GlyphMesh, MeshError> {
+    let outline = font.outline(glyph_id).ok_or(MeshError::NoOutline)?;
+    let font_scale = font.height_unscaled();
     let mut builder = Path::builder();
     builder.reserve(outline.curves.len(), 2 * outline.curves.len());
     let a = outline.bounds.min;
@@ -82,7 +89,7 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
                 },
             ),
         )
-        .unwrap();
+        .map_err(MeshError::TessellationError)?;
 
     let normals = vec![Vec3::Z.to_array(); geometry.vertices.len()];
     let mut positions = Vec::<[f32; 3]>::with_capacity(geometry.vertices.len());
@@ -102,10 +109,11 @@ pub fn build_mesh(font: FontRef, the_char: char) -> Option<GlyphMesh> {
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
     mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-    Some(GlyphMesh {
+    Ok(GlyphMesh {
         mesh,
         width,
         height,
+        font_scale,
     })
 }
 
@@ -150,6 +158,7 @@ pub struct GlyphMesh {
     pub mesh: Mesh,
     pub width: f32,
     pub height: f32,
+    pub font_scale: f32,
 }
 
 #[derive(Copy, Clone, Debug)]
