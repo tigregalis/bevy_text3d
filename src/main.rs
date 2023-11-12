@@ -1,3 +1,11 @@
+// TODO: librarify this
+// TODO: colours don't work
+// TODO: Text3dSize
+// TODO: Text Bounds (support text wrapping)
+// TODO: perhaps custom material handles injected into Text instead of colour (would have to run our own SectionText)
+// TODO: double-sided mesh
+// TODO: extruded mesh
+
 #![allow(clippy::too_many_arguments)]
 
 use bevy::{pbr::wireframe::WireframePlugin, prelude::*};
@@ -22,6 +30,8 @@ fn main() {
         .add_systems(Startup, setup)
         // .add_systems(Update, zoom_and_pan)
         .add_systems(Update, adjust_movement_settings)
+        .add_systems(Update, spin_light)
+        .add_systems(Update, toggle_light)
         .run();
 }
 
@@ -36,7 +46,7 @@ fn setup(
         FlyCam,
         Camera3dBundle {
             transform: {
-                let mut transform = Transform::from_translation(Vec3::new(0.0, 1.5, 100.0))
+                let mut transform = Transform::from_translation(Vec3::new(0.0, 1.5, 300.0))
                     .looking_at(Vec3::ZERO, Vec3::Y);
                 transform.scale = Vec2::splat(2.0).extend(1.0);
                 transform
@@ -58,11 +68,10 @@ fn setup(
             ..default()
         },
         transform: Transform::from_xyz(0.0, 10.0, 60.0).looking_at(Vec3::ZERO, Vec3::Y),
+        visibility: Visibility::Hidden,
         ..default()
     });
 
-    // TODO: colours don't work
-    // TODO: Text3dSize
     // Plane at origin
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Plane {
@@ -77,35 +86,35 @@ fn setup(
     commands.spawn(Text3dBundle {
         text: Text::from_sections([
             TextSection::new(
-                "Press F to toggle wireframes.\n",
+                "Use WASD to move and the mouse to look around.\n",
                 TextStyle {
                     font: asset_server.load("fonts/Dancing_Script-Medium.ttf"),
                     font_size: 40.0,
-                    color: Color::rgb(0.5, 0.9, 0.5),
+                    color: Color::rgb(1.0, 0.9, 0.5),
                 },
             ),
             TextSection::new(
-                "Press F to toggle wireframes.\n",
+                "Press Space to rise, and Shift to fall. Now, fall.\n",
                 TextStyle {
                     font: asset_server.load("fonts/Airstrip_Four-Regular.ttf"),
                     font_size: 40.0,
-                    color: Color::rgb(0.5, 0.9, 0.5),
+                    color: Color::rgb(0.5, 0.9, 1.0),
                 },
             ),
             TextSection::new(
-                "Press F to toggle wireframes.\n",
+                "Hi there. Press F to toggle wireframes. Come closer.\n",
                 TextStyle {
                     font: asset_server.load("fonts/Open_Sans-Italic.ttf"),
                     font_size: 40.0,
-                    color: Color::rgb(0.5, 0.9, 0.5),
+                    color: Color::rgb(0.8, 0.0, 0.7),
                 },
             ),
             TextSection::new(
-                "Press F to toggle wireframes.\n",
+                "Press T to turn on the lights. Then, rise.\n",
                 TextStyle {
                     font: asset_server.load("fonts/Fira_Mono-Bold.ttf"),
                     font_size: 40.0,
-                    color: Color::rgb(0.5, 0.9, 0.5),
+                    color: Color::rgb(0.8, 0.9, 0.7),
                 },
             ),
         ])
@@ -147,4 +156,25 @@ fn adjust_movement_settings(
 ) {
     settings.speed =
         MovementSettings::default().speed + camera.single().translation.distance(Vec3::ZERO);
+}
+
+fn spin_light(time: Res<Time>, mut query: Query<&mut Transform, With<DirectionalLight>>) {
+    for mut transform in &mut query {
+        transform.rotate_y(time.delta_seconds());
+    }
+}
+
+fn toggle_light(
+    input: Res<Input<KeyCode>>,
+    mut query: Query<&mut Visibility, With<DirectionalLight>>,
+) {
+    if input.just_pressed(KeyCode::T) {
+        for mut light in &mut query {
+            *light = match *light {
+                Visibility::Hidden => Visibility::Visible,
+                Visibility::Visible => Visibility::Hidden,
+                Visibility::Inherited => Visibility::Hidden,
+            };
+        }
+    }
 }

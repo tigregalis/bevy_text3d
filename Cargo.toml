@@ -1,6 +1,6 @@
 [package]
 name = "bevy_text3d"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["tigregalis <anak.harimau@gmail.com>"]
 edition = "2021"
 
@@ -10,5 +10,5 @@ edition = "2021"
 ab_glyph = "0.2.20"
 glyph_brush_layout = "0.2.3"
 lyon = "1.0.1"
-bevy = { version = "0.12.0", features = ["dynamic_linking"] }
+bevy = { version = "0.12.0" }
 bevy_flycam = "0.12.0"
