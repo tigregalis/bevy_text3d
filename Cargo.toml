@@ -1,5 +1,5 @@
 [package]
-name = "lyon-loves-ab-glyph"
+name = "bevy_text3d"
 version = "0.1.0"
 authors = ["tigregalis <anak.harimau@gmail.com>"]
 edition = "2021"

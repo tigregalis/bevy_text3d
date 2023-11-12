@@ -7,7 +7,6 @@ mod mesh;
 mod pipeline;
 mod plugin;
 
-use pipeline::Text3d;
 use plugin::{Text3dBundle, Text3dPlugin};
 
 fn main() {
@@ -80,7 +79,7 @@ fn setup(
             TextSection::new(
                 "Press F to toggle wireframes.\n",
                 TextStyle {
-                    font: asset_server.load("fonts/OpenSans-Italic.ttf"),
+                    font: asset_server.load("fonts/Dancing_Script-Medium.ttf"),
                     font_size: 40.0,
                     color: Color::rgb(0.5, 0.9, 0.5),
                 },
@@ -88,7 +87,7 @@ fn setup(
             TextSection::new(
                 "Press F to toggle wireframes.\n",
                 TextStyle {
-                    font: asset_server.load("fonts/airstrip.ttf"),
+                    font: asset_server.load("fonts/Airstrip_Four-Regular.ttf"),
                     font_size: 40.0,
                     color: Color::rgb(0.5, 0.9, 0.5),
                 },
@@ -96,7 +95,7 @@ fn setup(
             TextSection::new(
                 "Press F to toggle wireframes.\n",
                 TextStyle {
-                    font: asset_server.load("fonts/OpenSans-Italic.ttf"),
+                    font: asset_server.load("fonts/Open_Sans-Italic.ttf"),
                     font_size: 40.0,
                     color: Color::rgb(0.5, 0.9, 0.5),
                 },
@@ -104,7 +103,7 @@ fn setup(
             TextSection::new(
                 "Press F to toggle wireframes.\n",
                 TextStyle {
-                    font: asset_server.load("fonts/airstrip.ttf"),
+                    font: asset_server.load("fonts/Fira_Mono-Bold.ttf"),
                     font_size: 40.0,
                     color: Color::rgb(0.5, 0.9, 0.5),
                 },

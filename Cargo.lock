@@ -942,6 +942,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_text3d"
+version = "0.1.0"
+dependencies = [
+ "ab_glyph",
+ "bevy",
+ "bevy_flycam",
+ "glyph_brush_layout",
+ "lyon",
+]
+
+[[package]]
 name = "bevy_time"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2133,17 +2144,6 @@ checksum = "91e7f9cda98b5430809e63ca5197b06c7d191bf7e26dfc467d5a3f0290e2a74f"
 dependencies = [
  "lyon_algorithms",
  "lyon_tessellation",
-]
-
-[[package]]
-name = "lyon-loves-ab-glyph"
-version = "0.1.0"
-dependencies = [
- "ab_glyph",
- "bevy",
- "bevy_flycam",
- "glyph_brush_layout",
- "lyon",
 ]
 
 [[package]]
