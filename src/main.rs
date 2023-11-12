@@ -8,7 +8,7 @@ mod pipeline;
 mod plugin;
 
 use pipeline::Text3d;
-use plugin::Text3dPlugin;
+use plugin::{Text3dBundle, Text3dPlugin};
 
 fn main() {
     App::new()
@@ -63,112 +63,56 @@ fn setup(
     });
 
     // TODO: colours don't work
-    // TODO: alignment doesn't work properly
-    // TODO: sizing
+    // TODO: Text3dSize
     // Plane at origin
-    // commands.spawn(PbrBundle {
-    //     mesh: meshes.add(Mesh::from(shape::Plane {
-    //         size: 10000.0,
-    //         ..default()
-    //     })),
-    //     material: materials.add(Color::rgb(0.02734375, 0.1171875, 0.92578125).into()),
-    //     ..default()
-    // });
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Plane {
+            size: 10000.0,
+            ..default()
+        })),
+        material: materials.add(Color::rgb(0.02734375, 0.1171875, 0.92578125).into()),
+        ..default()
+    });
 
     // Text at origin
-    commands
-        .spawn((
-            SpatialBundle::default(),
-            Text3d(Text::from_sections([
-                // TextSection::new(
-                //     "Airstrip Four",
-                //     TextStyle {
-                //         font: asset_server.load("fonts/airstrip.ttf"),
-                //         font_size: 40.0,
-                //         color: Color::rgb(0.5, 0.9, 0.5),
-                //     },
-                // ),
-                // TextSection::new(
-                //     "Deja Vu Sans Mono\n",
-                //     TextStyle {
-                //         font: asset_server.load("fonts/DejaVuSansMono.ttf"),
-                //         font_size: 40.0,
-                //         color: Color::rgb(0.9, 0.5, 0.5),
-                //     },
-                // ),
-                // TextSection::new(
-                //     "Open Sans Italic\n",
-                //     TextStyle {
-                //         font: asset_server.load("fonts/DejaVuSansMono.ttf"),
-                //         font_size: 40.0,
-                //         color: Color::rgb(0.9, 0.5, 0.5),
-                //     },
-                // ),
-                TextSection::new(
-                    "Press F to toggle wireframes.\n",
-                    TextStyle {
-                        font: asset_server.load("fonts/OpenSans-Italic.ttf"),
-                        font_size: 40.0,
-                        color: Color::rgb(0.5, 0.9, 0.5),
-                    },
-                ),
-                TextSection::new(
-                    "Press F to toggle wireframes.\n",
-                    TextStyle {
-                        font: asset_server.load("fonts/airstrip.ttf"),
-                        font_size: 40.0,
-                        color: Color::rgb(0.5, 0.9, 0.5),
-                    },
-                ),
-                TextSection::new(
-                    "Press F to toggle wireframes.\n",
-                    TextStyle {
-                        font: asset_server.load("fonts/OpenSans-Italic.ttf"),
-                        font_size: 40.0,
-                        color: Color::rgb(0.5, 0.9, 0.5),
-                    },
-                ),
-                TextSection::new(
-                    "Press F to toggle wireframes.\n",
-                    TextStyle {
-                        font: asset_server.load("fonts/airstrip.ttf"),
-                        font_size: 40.0,
-                        color: Color::rgb(0.5, 0.9, 0.5),
-                    },
-                ),
-                // TextSection::new(
-                //     "wwmm\n",
-                //     TextStyle {
-                //         font: asset_server.load("fonts/airstrip.ttf"),
-                //         font_size: 40.0,
-                //         color: Color::rgb(0.5, 0.9, 0.5),
-                //     },
-                // ),
-                // TextSection::new(
-                //     "wwmm\n",
-                //     TextStyle {
-                //         font: asset_server.load("fonts/OpenSans-Italic.ttf"),
-                //         font_size: 40.0,
-                //         color: Color::rgb(0.5, 0.9, 0.5),
-                //     },
-                // ),
-            ])),
-        ))
-        .with_children(|parent| {
-            // spawn plane
-            parent.spawn(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::new(500.0, 10.0)))),
-                material: materials.add(Color::rgb(0.5, 0.5, 0.5).into()),
-                transform: Transform::from_xyz(0.0, 0.0, -1.0),
-                ..default()
-            });
-            parent.spawn(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Quad::new(Vec2::new(10.0, 500.0)))),
-                material: materials.add(Color::rgb(0.5, 0.5, 0.5).into()),
-                transform: Transform::from_xyz(0.0, 0.0, -1.0),
-                ..default()
-            });
-        });
+    commands.spawn(Text3dBundle {
+        text: Text::from_sections([
+            TextSection::new(
+                "Press F to toggle wireframes.\n",
+                TextStyle {
+                    font: asset_server.load("fonts/OpenSans-Italic.ttf"),
+                    font_size: 40.0,
+                    color: Color::rgb(0.5, 0.9, 0.5),
+                },
+            ),
+            TextSection::new(
+                "Press F to toggle wireframes.\n",
+                TextStyle {
+                    font: asset_server.load("fonts/airstrip.ttf"),
+                    font_size: 40.0,
+                    color: Color::rgb(0.5, 0.9, 0.5),
+                },
+            ),
+            TextSection::new(
+                "Press F to toggle wireframes.\n",
+                TextStyle {
+                    font: asset_server.load("fonts/OpenSans-Italic.ttf"),
+                    font_size: 40.0,
+                    color: Color::rgb(0.5, 0.9, 0.5),
+                },
+            ),
+            TextSection::new(
+                "Press F to toggle wireframes.\n",
+                TextStyle {
+                    font: asset_server.load("fonts/airstrip.ttf"),
+                    font_size: 40.0,
+                    color: Color::rgb(0.5, 0.9, 0.5),
+                },
+            ),
+        ])
+        .into(),
+        ..default()
+    });
 }
 
 // fn zoom_and_pan(

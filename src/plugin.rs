@@ -1,6 +1,22 @@
-use bevy::{pbr::wireframe::Wireframe, prelude::*, text::YAxisOrientation};
+use bevy::{pbr::wireframe::Wireframe, prelude::*};
 
 use crate::pipeline::{queue_text, FontGlyphMeshMap, Text3d};
+
+#[derive(Bundle, Debug, Default)]
+pub struct Text3dBundle {
+    /// The visibility of the entity.
+    pub visibility: Visibility,
+    /// The inherited visibility of the entity.
+    pub inherited_visibility: InheritedVisibility,
+    /// The view visibility of the entity.
+    pub view_visibility: ViewVisibility,
+    /// The transform of the entity.
+    pub transform: Transform,
+    /// The global transform of the entity.
+    pub global_transform: GlobalTransform,
+    /// The text of the entity.
+    pub text: Text3d,
+}
 
 pub struct Text3dPlugin;
 
@@ -37,7 +53,6 @@ fn queue_text_3d_system(
             &fonts,
             &mut materials,
             &mut meshes,
-            YAxisOrientation::BottomToTop,
         );
     }
     for (entity, text_3d) in text_3ds_changed.iter() {
@@ -51,7 +66,6 @@ fn queue_text_3d_system(
             &fonts,
             &mut materials,
             &mut meshes,
-            YAxisOrientation::BottomToTop,
         );
     }
     // TODO: is the below expensive to do every frame, or is checking waiting_next_tick.len() worse?

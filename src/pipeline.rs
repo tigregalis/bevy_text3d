@@ -6,13 +6,25 @@ use crate::{
 };
 
 use ab_glyph::{Font as _, GlyphId, PxScale};
-use bevy::{prelude::*, text::YAxisOrientation};
+use bevy::prelude::*;
 use glyph_brush_layout::{FontId, GlyphPositioner, Layout, SectionGeometry, SectionText};
 
-#[derive(Component, Clone, Debug, Deref, DerefMut)]
+#[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
 pub struct Text3d(pub Text);
 
-#[derive(Component, Clone, Copy, Debug, Deref, DerefMut)]
+impl From<Text3d> for Text {
+    fn from(text_3d: Text3d) -> Self {
+        text_3d.0
+    }
+}
+
+impl From<Text> for Text3d {
+    fn from(text: Text) -> Self {
+        Self(text)
+    }
+}
+
+#[derive(Component, Clone, Copy, Debug, Default, Deref, DerefMut)]
 pub struct Text3dSize(Vec2);
 
 pub(crate) fn queue_text<M: AsMut<Assets<Mesh>>, F: AsRef<Assets<Font>>>(
@@ -24,7 +36,6 @@ pub(crate) fn queue_text<M: AsMut<Assets<Mesh>>, F: AsRef<Assets<Font>>>(
     fonts: &F,
     materials: &mut Assets<StandardMaterial>,
     meshes: &mut M,
-    y_axis_orientation: YAxisOrientation,
 ) {
     let (maybe_font_arcs, (sections, styles)): (Vec<Option<_>>, (Vec<_>, Vec<_>)) = text_3d
         .0
@@ -126,11 +137,12 @@ pub(crate) fn queue_text<M: AsMut<Assets<Mesh>>, F: AsRef<Assets<Font>>>(
         .replace_children(&children);
 }
 
-#[derive(Resource, Default)]
+#[derive(Clone, Debug, Default, Resource)]
 pub struct FontGlyphMeshMap {
     font_to_char_mesh_map: HashMap<Handle<Font>, FontData>,
 }
 
+#[derive(Clone, Debug)]
 struct FontData {
     meta: FontMeta,
     glyph_mesh_map: HashMap<GlyphId, GlyphMeshMeta>,
