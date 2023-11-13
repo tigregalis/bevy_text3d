@@ -935,7 +935,6 @@ dependencies = [
 name = "bevy_text3d"
 version = "0.0.1"
 dependencies = [
- "ab_glyph",
  "bevy",
  "bevy_flycam",
  "glyph_brush_layout",

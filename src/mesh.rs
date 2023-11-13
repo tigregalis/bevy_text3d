@@ -1,4 +1,4 @@
-use ab_glyph::{Font, GlyphId, OutlineCurve};
+use glyph_brush_layout::ab_glyph::{self, Font, GlyphId, OutlineCurve};
 
 use bevy::{
     prelude::*,

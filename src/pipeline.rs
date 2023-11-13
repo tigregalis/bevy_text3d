@@ -5,8 +5,8 @@ use crate::{
     plugin::Wireframeable,
 };
 
-use ab_glyph::{Font as _, GlyphId, PxScale};
 use bevy::prelude::*;
+use glyph_brush_layout::ab_glyph::{Font as _, GlyphId, PxScale};
 use glyph_brush_layout::{FontId, GlyphPositioner, Layout, SectionGeometry, SectionText};
 
 #[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
