@@ -1,11 +1,3 @@
-// TODO: librarify this
-// TODO: colours don't work
-// TODO: Text3dSize
-// TODO: Text Bounds (support text wrapping)
-// TODO: perhaps custom material handles injected into Text instead of colour (would have to run our own SectionText)
-// TODO: double-sided mesh
-// TODO: extruded mesh
-
 #![allow(clippy::too_many_arguments)]
 
 use bevy::{pbr::wireframe::WireframePlugin, prelude::*};
