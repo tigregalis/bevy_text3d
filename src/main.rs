@@ -10,12 +10,7 @@
 
 use bevy::{pbr::wireframe::WireframePlugin, prelude::*};
 use bevy_flycam::prelude::*;
-
-mod mesh;
-mod pipeline;
-mod plugin;
-
-use plugin::{Text3dBundle, Text3dPlugin};
+use bevy_text3d::prelude::*;
 
 fn main() {
     App::new()
