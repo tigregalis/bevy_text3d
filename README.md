@@ -21,6 +21,14 @@ use plugin::{Text3dBundle, Text3dPlugin};
     });
 ```
 
+## Examples
+
+### Intro
+
+```shell
+cargo run --example intro
+```
+
 https://github.com/tigregalis/bevy_text3d/assets/38416468/67838da1-1dec-453a-a250-49c7b1b4622a
 
 ## To do
@@ -32,3 +40,5 @@ https://github.com/tigregalis/bevy_text3d/assets/38416468/67838da1-1dec-453a-a25
 - [ ] perhaps custom material handles injected into Text instead of colour (would have to run our own SectionText)
 - [ ] double-sided mesh
 - [ ] extruded mesh
+- [ ] migrate to cosmic-text
+- [ ] support text editing and interaction
