@@ -33,12 +33,13 @@ https://github.com/tigregalis/bevy_text3d/assets/38416468/67838da1-1dec-453a-a25
 
 ## To do
 
-- [ ] librarify this
-- [ ] colours don't work properly
-- [ ] Text3dSize
+- [x] librarify this
+- [ ] colours don't work properly when lights are on and are faded when not
+- [ ] do something with Text3dSize
 - [ ] Text Bounds (support text wrapping)
 - [ ] perhaps custom material handles injected into Text instead of colour (would have to run our own SectionText)
 - [ ] double-sided mesh
 - [ ] extruded mesh
 - [ ] migrate to cosmic-text
 - [ ] support text editing and interaction
+- [ ] more examples
