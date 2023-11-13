@@ -31,6 +31,14 @@ cargo run --example intro
 
 https://github.com/tigregalis/bevy_text3d/assets/38416468/67838da1-1dec-453a-a250-49c7b1b4622a
 
+### Star Wars
+
+(WORK IN PROGRESS)
+
+```shell
+cargo run --example star_wars
+```
+
 ## To do
 
 - [x] librarify this
